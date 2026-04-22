@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home24 Insight Tool</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --brand: #e85d26;
+            --brand-dark: #c44d1c;
+            --bg: #f7f7f7;
+            --card: #ffffff;
+            --text: #1a1a1a;
+            --muted: #666;
+            --border: #e0e0e0;
+            --success: #1a7a42;
+            --success-bg: #eaf7ef;
+            --error: #b91c1c;
+            --error-bg: #fef2f2;
+            --radius: 10px;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            height: 60px;
+            gap: 12px;
+        }
+
+        .logo-dot {
+            width: 32px;
+            height: 32px;
+            background: var(--brand);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+            font-size: 15px;
+        }
+
+        header h1 {
+            font-size: 17px;
+            font-weight: 700;
+            margin: 0;
+            color: var(--text);
+        }
+
+        main {
+            max-width: 780px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .search-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 28px 28px 24px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .06);
+        }
+
+        .search-card h2 {
+            margin: 0 0 6px;
+            font-size: 20px;
+        }
+
+        .search-card p {
+            margin: 0 0 20px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .url-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 7px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color .15s;
+        }
+
+        .url-input:focus {
+            border-color: var(--brand);
+        }
+
+        .btn-analyze {
+            padding: 10px 22px;
+            background: var(--brand);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .15s;
+            white-space: nowrap;
+        }
+
+        .btn-analyze:hover {
+            background: var(--brand-dark);
+        }
+
+        .btn-analyze:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Error */
+        .error-box {
+            margin-top: 24px;
+            padding: 16px 18px;
+            background: var(--error-bg);
+            border: 1px solid #fca5a5;
+            border-radius: var(--radius);
+            color: var(--error);
+            font-size: 14px;
+        }
+
+        .error-box strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Results */
+        .results {
+            margin-top: 28px;
+            display: grid;
+            gap: 16px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 22px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
+        }
+
+        .card-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--muted);
+            margin: 0 0 10px;
+        }
+
+        .card-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .cards-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 14px;
+        }
+
+        .heading-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .h-cell {
+            text-align: center;
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 10px 6px;
+        }
+
+        .h-cell .level {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .h-cell .count {
+            font-size: 20px;
+            font-weight: 800;
+            margin-top: 2px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .badge-green {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+
+        .badge-red {
+            background: var(--error-bg);
+            color: var(--error);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, .4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(180deg);
+            }
+        }
+
+        .url-display {
+            font-size: 13px;
+            color: var(--muted);
+            word-break: break-all;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo-dot">24</div>
+        <h1>Home24 Insight Tool</h1>
+    </header>
+
+    <main id="root"></main>
+
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin
+        src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+
+    <script>
+        const { useState, useRef } = React;
+
+        function App() {
+            const [url, setUrl] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [result, setResult] = useState(null);
+            const [error, setError] = useState(null);
+            const inputRef = useRef(null);
+
+            async function handleSubmit(e) {
+                e.preventDefault();
+                const trimmed = url.trim();
+                if (!trimmed) return;
+
+                setLoading(true);
+                setResult(null);
+                setError(null);
+
+                try {
+                    const resp = await fetch('/api/analyze', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url: trimmed }),
+                    });
+
+                    const json = await resp.json();
+
+                    if (json.error) {
+                        setError(json.error);
+                    } else {
+                        setResult(json.data);
+                    }
+                } catch (err) {
+                    setError({ status_code: 0, message: 'Network error: could not reach the server.' });
+                } finally {
+                    setLoading(false);
+                }
+            }
+
+            return React.createElement('div', null,
+                React.createElement('div', { className: 'search-card' },
+                    React.createElement('h2', null, 'Analyze a Web Page'),
+                    React.createElement('p', null, 'Enter any URL to extract HTML metadata, links, headings, and more.'),
+                    React.createElement('form', { onSubmit: handleSubmit },
+                        React.createElement('div', { className: 'input-row' },
+                            React.createElement('input', {
+                                ref: inputRef,
+                                className: 'url-input',
+                                type: 'text',
+                                placeholder: 'https://example.com',
+                                value: url,
+                                onChange: e => setUrl(e.target.value),
+                                autoFocus: true,
+                                spellCheck: false,
+                            }),
+                            React.createElement('button', {
+                                className: 'btn-analyze',
+                                type: 'submit',
+                                disabled: loading || !url.trim(),
+                            },
+                                loading
+                                    ? React.createElement('span', null,
+                                        React.createElement('span', { className: 'spinner' }),
+                                        'Analyzing…')
+                                    : 'Analyze'
+                            )
+                        )
+                    ),
+                    error && React.createElement('div', { className: 'error-box' },
+                        React.createElement('strong', null,
+                            error.status_code ? `Error ${error.status_code}` : 'Error'
+                        ),
+                        error.message
+                    )
+                ),
+
+                result && React.createElement(Results, { data: result })
+            );
+        }
+
+        function Results({ data }) {
+            const headingLevels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+
+            return React.createElement('div', { className: 'results' },
+
+                // Page title + meta
+                React.createElement('div', { className: 'card' },
+                    React.createElement('div', { className: 'card-title' }, 'Page'),
+                    React.createElement('div', { className: 'card-value' }, data.title || '(no title)'),
+                    React.createElement('div', { className: 'url-display' }, data.url),
+                    React.createElement('div', { style: { marginTop: 10 } },
+                        React.createElement('span', { className: 'badge badge-green' }, data.html_version)
+                    )
+                ),
+
+                // Headings
+                React.createElement('div', { className: 'card' },
+                    React.createElement('div', { className: 'card-title' }, 'Headings'),
+                    React.createElement('div', { className: 'heading-grid' },
+                        headingLevels.map(h =>
+                            React.createElement('div', { key: h, className: 'h-cell' },
+                                React.createElement('div', { className: 'level' }, h.toUpperCase()),
+                                React.createElement('div', { className: 'count' }, data.headings[h] || 0)
+                            )
+                        )
+                    )
+                ),
+
+                // Links row
+                React.createElement('div', { className: 'cards-row' },
+                    StatCard('Internal Links', data.internal_links, '#2563eb', '#eff6ff'),
+                    StatCard('External Links', data.external_links, '#7c3aed', '#f5f3ff'),
+                    StatCard('Inaccessible Links', data.inaccessible_links,
+                        data.inaccessible_links > 0 ? '#b91c1c' : '#1a7a42',
+                        data.inaccessible_links > 0 ? '#fef2f2' : '#eaf7ef'),
+                ),
+
+                // Login form
+                React.createElement('div', { className: 'card', style: { display: 'flex', alignItems: 'center', gap: 12 } },
+                    React.createElement('div', { style: { flex: 1 } },
+                        React.createElement('div', { className: 'card-title' }, 'Login Form'),
+                        React.createElement('div', { className: 'card-value', style: { fontSize: 15 } },
+                            data.has_login_form
+                                ? 'A login form was detected on this page.'
+                                : 'No login form detected.'
+                        )
+                    ),
+                    React.createElement('span', {
+                        className: data.has_login_form ? 'badge badge-green' : 'badge badge-red'
+                    }, data.has_login_form ? '✓ Found' : '✗ Not found')
+                )
+            );
+        }
+
+        function StatCard(label, value, color, bgColor) {
+            return React.createElement('div', {
+                key: label,
+                className: 'card',
+                style: { borderTop: `3px solid ${color}` }
+            },
+                React.createElement('div', { className: 'card-title' }, label),
+                React.createElement('div', { className: 'card-value', style: { color } }, value)
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(App));
+    </script>
+</body>
+
+</html>
