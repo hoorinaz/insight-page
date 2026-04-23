@@ -1,11 +1,17 @@
 # Insight Tool
 
-A modern web application built with Go and React that analyzes web pages to extract metadata, heading structures, link statistics 
+A modern web application built with Go and React that analyzes web pages to extract metadata, heading structures, and link statistics 
+
 ■ HTML version (e.g., HTML5, HTML 4.01)
+
 ■ Page title
+
 ■ Count of headings per level (h1 through h6)
+
 ■ Number of internal and external links
+
 ■ Count of inaccessible links
+
 ■ Whether the page contains a login form
 
 ## 🚀 Getting Started
