@@ -1,6 +1,12 @@
 # Insight Tool
 
-A modern web application built with Go and React that analyzes web pages to extract SEO metadata, heading structures, link statistics, and security features.
+A modern web application built with Go and React that analyzes web pages to extract metadata, heading structures, link statistics 
+■ HTML version (e.g., HTML5, HTML 4.01)
+■ Page title
+■ Count of headings per level (h1 through h6)
+■ Number of internal and external links
+■ Count of inaccessible links
+■ Whether the page contains a login form
 
 ## 🚀 Getting Started
 
@@ -26,11 +32,11 @@ For convenience, a `Makefile` is provided for common tasks:
 ### Using Docker
 1. Build the image:
    ```bash
-   docker build -t page-insight-tool .
+   docker build -t insight-tool .
    ```
 2. Run the container:
    ```bash
-   docker run -p 8080:8080 page-insight-tool
+   docker run -p 8080:8080 insight-tool
    ```
 
 ### Run Tests
@@ -66,3 +72,4 @@ I have included a `Dockerfile` and a `Makefile` to demonstrate how the applicati
 - **Rate Limiting**: Add per-IP rate limiting to prevent abuse of the analysis endpoint.
 - **SSRF Protection**: Add a blocklist for internal IP ranges (127.0.0.1, 10.0.0.0/8, etc.) to prevent the server from being used to probe internal networks.
 - **Exporting**: Add the ability to export analysis results as PDF or CSV.
+- **Monitoring & Observability**: Integrate Prometheus metrics and structured logging to track analysis latency, error rates, and system health.

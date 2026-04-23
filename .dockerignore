@@ -1,0 +1,8 @@
+.git
+.gemini
+node_modules
+bin
+server
+*.test
+*.out
+.DS_Store

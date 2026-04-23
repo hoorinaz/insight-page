@@ -1,0 +1,9 @@
+# Binaries
+server
+server.exe
+
+# OS files
+.DS_Store
+
+# Tooling
+.gemini
