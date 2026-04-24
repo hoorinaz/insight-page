@@ -45,24 +45,34 @@
             gap: 12px;
         }
 
-        .logo-dot {
-            width: 32px;
-            height: 32px;
-            background: var(--brand);
-            border-radius: 50%;
+        .logo-container {
             display: flex;
             align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-weight: 800;
-            font-size: 15px;
+            gap: 4px;
+            text-decoration: none;
+        }
+
+        .logo-home {
+            font-weight: 700;
+            font-size: 22px;
+            color: #1a1a1a;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-24 {
+            font-weight: 700;
+            font-size: 22px;
+            color: var(--brand);
+            letter-spacing: -0.5px;
         }
 
         header h1 {
-            font-size: 17px;
-            font-weight: 700;
+            font-size: 16px;
+            font-weight: 500;
             margin: 0;
-            color: var(--text);
+            color: var(--muted);
+            padding-left: 12px;
+            border-left: 1px solid var(--border);
         }
 
         main {
@@ -243,7 +253,7 @@
 
         @keyframes spin {
             to {
-                transform: rotate(180deg);
+                transform: rotate(360deg);
             }
         }
 
@@ -258,7 +268,9 @@
 
 <body>
     <header>
-        <div class="logo-dot">24</div>
+        <div class="logo-container">
+            <span class="logo-home">home</span><span class="logo-24">24</span>
+        </div>
         <h1>Insight Tool</h1>
     </header>
 
