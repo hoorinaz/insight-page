@@ -6,11 +6,13 @@ package analyzer
 // heading counts, link classification, and login form detection.
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/net/html"
@@ -242,23 +244,26 @@ func parseHTML(body string, base *url.URL, result *Result) ([]string, error) {
 }
 
 // countInaccessibleLinks sends HEAD requests concurrently to all links and
-// counts those that return a non-2xx/3xx status or fail to connect.
+// countInaccessibleLinks checks all unique links concurrently using a fixed
+// worker pool with context-based timeout. It returns the count of links
+// that return a non-2xx/3xx status or fail to connect.
 func countInaccessibleLinks(links []string) int {
 	// Deduplicate to avoid hammering the same URL.
 	seen := make(map[string]bool, len(links))
-	unique := links[:0]
+	unique := make([]string, 0, len(links))
 	for _, l := range links {
 		if !seen[l] {
 			seen[l] = true
 			unique = append(unique, l)
 		}
 	}
+	if len(unique) == 0 {
+		return 0
+	}
 
-	type result struct{ inaccessible bool }
-	ch := make(chan result, len(unique))
-
-	// Cap concurrency to avoid overwhelming the network.
-	sem := make(chan struct{}, 20)
+	// Global timeout for all link checks combined.
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
 	checkClient := &http.Client{
 		Timeout: 10 * time.Second,
@@ -267,25 +272,62 @@ func countInaccessibleLinks(links []string) int {
 		},
 	}
 
+	const numWorkers = 20
+
+	jobs := make(chan string, len(unique))
+	results := make(chan bool, len(unique))
+
+	// Fill the jobs channel, then close it so workers know when to stop.
 	for _, link := range unique {
-		link := link
-		sem <- struct{}{}
+		jobs <- link
+	}
+	close(jobs)
+
+	// Launch a fixed number of workers.
+	var wg sync.WaitGroup
+	for i := 0; i < numWorkers; i++ {
+		wg.Add(1)
 		go func() {
-			defer func() { <-sem }()
-			resp, err := checkClient.Head(link)
-			if err != nil {
-				ch <- result{inaccessible: true}
-				return
+			defer wg.Done()
+			for link := range jobs {
+				// Try HEAD first (fastest, no body transferred)
+				req, err := http.NewRequestWithContext(ctx, "HEAD", link, nil)
+				if err != nil {
+					results <- true // inaccessible
+					continue
+				}
+				resp, err := checkClient.Do(req)
+				if err != nil {
+					results <- true
+					continue
+				}
+				resp.Body.Close()
+
+				// If HEAD is blocked, fall back to GET
+				if resp.StatusCode == 403 || resp.StatusCode == 405 {
+					req, _ = http.NewRequestWithContext(ctx, "GET", link, nil)
+					resp, err = checkClient.Do(req)
+					if err != nil {
+						results <- true
+						continue
+					}
+					resp.Body.Close()
+				}
+
+				results <- resp.StatusCode >= 400
 			}
-			resp.Body.Close()
-			ch <- result{inaccessible: resp.StatusCode >= 400}
 		}()
 	}
 
+	// Close results once all workers are done.
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
 	count := 0
-	for range unique {
-		r := <-ch
-		if r.inaccessible {
+	for inaccessible := range results {
+		if inaccessible {
 			count++
 		}
 	}
